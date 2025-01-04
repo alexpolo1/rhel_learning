@@ -1,0 +1,30 @@
+Which command is used to temporarily change a SELinux boolean?|semanage boolean|setsebool|getsebool|2
+How do you enable a systemd service at boot?|systemctl enable|systemctl start|systemctl active|1
+Which command lists all active SELinux booleans?|getsebool -a|semanage boolean -l|setsebool|2
+How do you force a container to stop?|podman kill|podman stop|podman rm|1
+Which systemctl command switches to another target?|systemctl isolate|systemctl switch|systemctl target|1
+How do you check the status of a SELinux boolean?|semanage boolean|getsebool|setsebool -P|2
+How do you create a new partition with parted?|parted /dev/vdb mkpart|mkfs.ext4 /dev/vdb|fdisk /dev/vdb|1
+Which command lists all configured SELinux ports?|semanage port -l|getsebool -a|setsebool|1
+Which command lists all systemd targets?|systemctl list-units --type=target --all|systemctl list-targets|systemctl list-active-targets|1
+How do you persistently change a SELinux boolean?|setsebool -P|getsebool -P|semanage boolean -P|1
+Which command shows the partition table?|fdisk -l|parted print|lsblk|1
+How do you restart a systemd service?|systemctl restart|systemctl reload|service restart|1
+Which command shows all running systemd services?|systemctl list-units --type=service|systemctl status --all|systemctl active-services|1
+How do you schedule a one-time job with cron?|at|crontab -e|cron add-job|1
+How do you list installed packages?|rpm -qa|yum list installed|dnf list installed|1
+How do you add a new user?|useradd|adduser|usermod|1
+How do you change file ownership?|chown user:group file|chmod user file|ls -l file|1
+Which command shows disk usage of a directory?|du -sh /dir|df -h /dir|ls -lh /dir|1
+How do you create a new logical volume?|lvcreate -L 10G -n volume group|vgcreate -L 10G|lvextend -L +10G volume|1
+How do you deactivate a user?|passwd -l user|usermod -L user|userdel user|2
+How do you view all available network interfaces?|ip addr|ifconfig|netstat -i|1
+How do you display the system uptime?|uptime|top|vmstat|1
+How do you view swap usage?|free -h|swapon -s|cat /proc/swaps|1
+How do you reload firewalld rules?|firewall-cmd --reload|iptables reload|firewallctl restart|1
+How do you list kernel modules?|lsmod|modprobe -l|dmesg|1
+How do you analyze CPU usage?|top|htop|vmstat|1
+Which command lists active TCP connections?|netstat -tulpn|ss -tulpn|lsof -i|1
+How do you stop a systemd service?|systemctl stop|systemctl disable|systemctl restart|1
+How do you check the DNS cache?|systemd-resolve --statistics|systemctl dns|dns cache|1
+

@@ -1,6 +1,29 @@
 # RHEL Learning Script
 
-Welcome to the **RHEL Learning Script**! This script is designed to help you stay focused on your RHEL learning goals by tracking your progress, preventing distractions, and reinforcing key concepts with questions related to RHEL administration.
+This project provides a script to manage RHEL learning sessions, including a timer, random questions, and XP tracking.
+
+## Directory Structure
+
+```filetree
+rhel_learning
+├── src
+│   ├── main.py
+│   ├── assets
+│   │   ├── xp.txt
+│   │   ├── level.txt
+│   │   ├── session.log
+│   │   ├── questions.txt
+│   │   └── total_time.txt
+│   ├── utils
+│   │   ├── __init__.py
+│   │   ├── assets.py
+│   │   ├── session.py
+│   │   ├── steam.py
+│   │   ├── timer.py
+│   │   └── xp.py
+├── requirements.txt
+└── README.md
+```
 
 ## Features
 
@@ -21,3 +44,28 @@ Ensure you have the following installed on your system:
 - **wmctrl** (for keeping the browser on top)
   ```bash
   sudo apt install wmctrl
+```
+
+## Usage
+
+1. Ensure all necessary files are in place.
+2. Install the required dependencies:
+
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+3. Run the main script:
+
+   ```sh
+   python src/main.py
+   ```
+
+## Files
+
+- `main.py`: Entry point for the application.
+- `assets.py`: Handles asset initialization and display.
+- `session.py`: Handles session logging.
+- `steam.py`: Handles killing Steam processes.
+- `timer.py`: Handles the timer and asking questions.
+- `xp.py`: Handles XP and level-up system.

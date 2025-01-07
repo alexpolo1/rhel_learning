@@ -138,4 +138,3 @@ kill $STEAM_KILL_PID
 
 # Log session end
 log_session "end"
-

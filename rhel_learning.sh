@@ -67,58 +67,33 @@ kill_steam() {
         steam_pids=$(ps aux | grep steam | grep -v grep | awk '{print $2}')
         if [ -n "$steam_pids" ]; then
             echo "Killing Steam processes..."
-            sudo kill -9 $steam_pids || echo "Failed to kill Steam processes"
+            sudo /bin/kill -9 $steam_pids || echo "Failed to kill Steam processes"
         fi
         sleep 5  # Check every 5 seconds
     done
 }
 
-# Function to display a random question
-ask_random_question() {
-    mapfile -t questions < "$QUESTIONS_FILE"
-    local random_index=$((RANDOM % ${#questions[@]}))
-    IFS='|' read -r question opt1 opt2 opt3 correct <<<"${questions[random_index]}"
-    echo "$question"
-    echo "1. $opt1"
-    echo "2. $opt2"
-    echo "3. $opt3"
-    local answer
-    read -p "Choose an answer (1-3): " answer
-    if [ "$answer" -eq "$correct" ]; then
-        echo "Correct answer!"
-        echo "$question|Correct" >> "$SESSION_LOG"
-    else
-        echo "Wrong answer. The correct option was: $correct"
-        echo "$question|Wrong" >> "$SESSION_LOG"
-    fi
-}
-
 # Timer function with window focus
 show_timer() {
-    local seconds=$((TIMER_MINUTES * 60))
     echo "The session will last $TIMER_MINUTES minutes."
 
-    # Open the URL in a private Firefox window
+    # Open the URL in Chromium
     if [ -n "$DISPLAY" ]; then
-        firefox --private-window "$URL" >/dev/null 2>&1 &
+        chromium "$URL" >/dev/null 2>&1 &
         sleep 2  # Allow the browser to open
         wmctrl -r ":ACTIVE:" -b add,above
     else
         echo "No graphical environment detected. Skipping browser opening."
     fi
 
-    for ((i = 1; i <= seconds; i++)); do
-        echo -ne "Time remaining: $((seconds - i)) seconds\r"
-        sleep 1
-    done
-    echo -e "\nSession complete!"
+    # Open a new terminal window and run the secondary script
+    gnome-terminal -- bash -c "$SCRIPT_DIR/timer_and_questions.sh $TIMER_MINUTES $QUESTIONS_FILE $SESSION_LOG; exec bash"
 
     # Add session time to total
     local total_time=$(cat "$TOTAL_TIME_FILE")
     total_time=$((total_time + TIMER_MINUTES))
     echo "$total_time" > "$TOTAL_TIME_FILE"
 }
-
 
 # XP and level-up system
 add_xp() {
@@ -155,15 +130,12 @@ STEAM_KILL_PID=$!
 echo "Starting RHEL Learning Session..."
 show_timer
 
+# Add XP
+add_xp
+
 # Stop killing Steam processes
 kill $STEAM_KILL_PID
 
 # Log session end
 log_session "end"
-
-# Ask a question
-ask_random_question
-
-# Add XP
-add_xp
 

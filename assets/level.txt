@@ -1,0 +1,1 @@
+/home/alex/git/rhel_learning/assets/level.txt

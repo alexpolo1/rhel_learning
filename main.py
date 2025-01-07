@@ -4,6 +4,8 @@ import psutil
 import tkinter as tk
 from tkinter import messagebox
 import random
+import sys
+import subprocess
 
 # Utility functions
 def initialize_assets(assets_dir, xp_file, level_file, session_log, total_time_file, questions_file):
@@ -35,16 +37,15 @@ def display_summary(total_time_file, xp_file, level_file):
     with open(level_file, 'r') as f:
         level = int(f.read().strip())
     hours, minutes = divmod(total_time, 60)
-    print(f"Welcome to the RHEL Learning Script!")
-    print(f"Total session time: {hours} hours and {minutes} minutes.")
-    print(f"Current Level: {level}")
-    print(f"Current XP: {xp}")
-    print()
+    return total_time, xp, level
 
 def kill_steam():
     for proc in psutil.process_iter():
-        if proc.name() == "steam.exe":
-            proc.kill()
+        try:
+            if 'steam' in proc.name().lower():
+                proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
 
 def update_xp(xp_file, level_file, session_log, correct):
     with open(xp_file, 'r') as f:
@@ -58,15 +59,16 @@ def update_xp(xp_file, level_file, session_log, correct):
     if new_xp >= level * 100:
         level += 1
         new_xp -= (level - 1) * 100
-        print(f"LEVEL UP! You are now Level {level}!")
+        messagebox.showinfo("LEVEL UP!", f"LEVEL UP! You are now Level {level}!")
     with open(xp_file, 'w') as f:
         f.write(str(new_xp))
     with open(level_file, 'w') as f:
         f.write(str(level))
     with open(session_log, 'a') as f:
         f.write(f"XP and level updated: {new_xp} XP, Level {level}\n")
+    return new_xp, level
 
-def show_timer(minutes, questions_file, session_log):
+def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     def update_timer():
         nonlocal seconds_left
         if seconds_left > 0:
@@ -85,10 +87,18 @@ def show_timer(minutes, questions_file, session_log):
         selected_answer = answer_var.get()
         if selected_answer == correct_answer:
             messagebox.showinfo("Correct!", "You selected the correct answer.")
-            update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=True)
+            new_xp, new_level = update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=True)
         else:
             messagebox.showinfo("Incorrect", "You selected the wrong answer.")
-            update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=False)
+            new_xp, new_level = update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=False)
+        for button in radio_buttons:
+            button.config(state=tk.DISABLED)
+        xp_label.config(text=f"XP: {new_xp}")
+        level_label.config(text=f"Level: {new_level}")
+
+    def periodic_kill_steam():
+        kill_steam()
+        root.after(10000, periodic_kill_steam)  # Schedule to run every 10 seconds
 
     root = tk.Tk()
     root.title("RHEL Learning Timer")
@@ -98,8 +108,18 @@ def show_timer(minutes, questions_file, session_log):
     timer_label = tk.Label(root, text=f"Time left: {minutes:02}:00:00", font=("Helvetica", 16))
     timer_label.pack(pady=20)
 
+    xp_label = tk.Label(root, text=f"XP: {xp}", font=("Helvetica", 14))
+    xp_label.pack(pady=5)
+
+    level_label = tk.Label(root, text=f"Level: {level}", font=("Helvetica", 14))
+    level_label.pack(pady=5)
+
+    total_time_label = tk.Label(root, text=f"Total session time: {total_time // 60} hours and {total_time % 60} minutes", font=("Helvetica", 14))
+    total_time_label.pack(pady=5)
+
     with open(questions_file, 'r') as f:
         questions = f.readlines()
+    random.shuffle(questions)  # Shuffle the questions to ensure randomness
 
     question = random.choice(questions).strip()
     question_text, *answers, correct_answer = question.split('|')
@@ -108,16 +128,27 @@ def show_timer(minutes, questions_file, session_log):
     question_label.pack(pady=10)
 
     answer_var = tk.StringVar(value="")
+    radio_buttons = []
 
     for idx, answer in enumerate(answers, start=1):
         radio_button = tk.Radiobutton(root, text=answer, variable=answer_var, value=str(idx), font=("Helvetica", 12))
         radio_button.pack(anchor='w')
+        radio_buttons.append(radio_button)
 
     submit_button = tk.Button(root, text="Submit", command=check_answer, font=("Helvetica", 12))
     submit_button.pack(pady=10)
 
     root.after(1000, update_timer)
+    root.after(10000, periodic_kill_steam)  # Start the periodic kill_steam function
     root.mainloop()
+
+def open_firefox(url):
+    print(f"Attempting to open Firefox with URL: {url}")
+    if 'DISPLAY' in os.environ:
+        subprocess.Popen(['firefox', '--new-window', url], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        print("Firefox opened successfully.")
+    else:
+        print("No graphical environment detected. Skipping browser opening.")
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -138,17 +169,19 @@ def main():
     log_session(SESSION_LOG, "start")
 
     # Display session summary
-    display_summary(TOTAL_TIME_FILE, XP_FILE, LEVEL_FILE)
+    total_time, xp, level = display_summary(TOTAL_TIME_FILE, XP_FILE, LEVEL_FILE)
 
-    # Start killing Steam processes in the background
-    kill_steam()
+    # Open Firefox to the specified URL
+    open_firefox(URL)
 
     # Start session
-    print("Starting RHEL Learning Session...")
-    show_timer(TIMER_MINUTES, QUESTIONS_FILE, SESSION_LOG)
+    show_timer(TIMER_MINUTES, QUESTIONS_FILE, SESSION_LOG, total_time, xp, level)
 
     # Log session end
     log_session(SESSION_LOG, "end")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "kill_steam":
+        kill_steam()
+    else:
+        main()

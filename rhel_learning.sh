@@ -67,7 +67,7 @@ kill_steam() {
         steam_pids=$(ps aux | grep steam | grep -v grep | awk '{print $2}')
         if [ -n "$steam_pids" ]; then
             echo "Killing Steam processes..."
-            sudo kill -9 $steam_pids
+            sudo kill -9 $steam_pids || echo "Failed to kill Steam processes"
         fi
         sleep 5  # Check every 5 seconds
     done
@@ -112,6 +112,9 @@ show_timer() {
     local total_time=$(cat "$TOTAL_TIME_FILE")
     total_time=$((total_time + TIMER_MINUTES))
     echo "$total_time" > "$TOTAL_TIME_FILE"
+
+    # Reset window focus
+    wmctrl -r ":ACTIVE:" -b remove,above
 }
 
 # XP and level-up system
@@ -128,6 +131,9 @@ add_xp() {
     echo "$level" > "$LEVEL_FILE"
     echo "XP and level updated: $new_xp XP, Level $level" >> "$SESSION_LOG"
 }
+
+# Handle script interruption
+trap 'echo "Script interrupted. Cleaning up..."; kill $STEAM_KILL_PID; wmctrl -r ":ACTIVE:" -b remove,above; exit 1' INT TERM
 
 # Initialize assets
 initialize_assets

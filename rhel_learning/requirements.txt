@@ -1,4 +1,0 @@
-Flask==2.0.1
-psutil==5.8.0
-wmctrl==0.1.0
-PyQt5==5.15.4

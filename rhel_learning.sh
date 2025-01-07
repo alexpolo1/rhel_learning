@@ -97,11 +97,16 @@ ask_random_question() {
 show_timer() {
     local seconds=$((TIMER_MINUTES * 60))
     echo "The session will last $TIMER_MINUTES minutes."
-    xdg-open "$URL" >/dev/null 2>&1 &
-    sleep 2  # Allow the browser to open
 
-    # Keep the browser and terminal on top using wmctrl
-    wmctrl -r ":ACTIVE:" -b add,above
+    # Open the URL in a private Firefox window
+    if [ -n "$DISPLAY" ]; then
+        firefox --private-window "$URL" >/dev/null 2>&1 &
+        sleep 2  # Allow the browser to open
+        wmctrl -r ":ACTIVE:" -b add,above
+    else
+        echo "No graphical environment detected. Skipping browser opening."
+    fi
+
     for ((i = 1; i <= seconds; i++)); do
         echo -ne "Time remaining: $((seconds - i)) seconds\r"
         sleep 1
@@ -112,10 +117,8 @@ show_timer() {
     local total_time=$(cat "$TOTAL_TIME_FILE")
     total_time=$((total_time + TIMER_MINUTES))
     echo "$total_time" > "$TOTAL_TIME_FILE"
-
-    # Reset window focus
-    wmctrl -r ":ACTIVE:" -b remove,above
 }
+
 
 # XP and level-up system
 add_xp() {

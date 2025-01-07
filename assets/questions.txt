@@ -27,4 +27,3 @@ How do you analyze CPU usage?|top|htop|vmstat|1
 Which command lists active TCP connections?|netstat -tulpn|ss -tulpn|lsof -i|1
 How do you stop a systemd service?|systemctl stop|systemctl disable|systemctl restart|1
 How do you check the DNS cache?|systemd-resolve --statistics|systemctl dns|dns cache|1
-

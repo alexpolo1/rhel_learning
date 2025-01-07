@@ -1,6 +1,9 @@
 import os
 import time
 import psutil
+import tkinter as tk
+from tkinter import messagebox
+import random
 
 # Utility functions
 def initialize_assets(assets_dir, xp_file, level_file, session_log, total_time_file, questions_file):
@@ -43,19 +46,15 @@ def kill_steam():
         if proc.name() == "steam.exe":
             proc.kill()
 
-def show_timer(minutes, questions_file, session_log):
-    print(f"The session will last {minutes} minutes.")
-    # Simulate timer and questions
-    time.sleep(minutes * 60)
-    with open(session_log, 'a') as f:
-        f.write(f"Session duration: {minutes} minutes\n")
-
-def add_xp(xp_file, level_file, session_log):
+def update_xp(xp_file, level_file, session_log, correct):
     with open(xp_file, 'r') as f:
         xp = int(f.read().strip())
     with open(level_file, 'r') as f:
         level = int(f.read().strip())
-    new_xp = xp + 10
+    if correct:
+        new_xp = xp + 10
+    else:
+        new_xp = max(0, xp - 5)  # Ensure XP doesn't go below 0
     if new_xp >= level * 100:
         level += 1
         new_xp -= (level - 1) * 100
@@ -66,6 +65,59 @@ def add_xp(xp_file, level_file, session_log):
         f.write(str(level))
     with open(session_log, 'a') as f:
         f.write(f"XP and level updated: {new_xp} XP, Level {level}\n")
+
+def show_timer(minutes, questions_file, session_log):
+    def update_timer():
+        nonlocal seconds_left
+        if seconds_left > 0:
+            seconds_left -= 1
+            hours, remainder = divmod(seconds_left, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            timer_label.config(text=f"Time left: {hours:02}:{minutes:02}:{seconds:02}")
+            root.after(1000, update_timer)
+        else:
+            messagebox.showinfo("Time's up!", "The session has ended.")
+            with open(session_log, 'a') as f:
+                f.write(f"Session duration: {minutes} minutes\n")
+            root.destroy()
+
+    def check_answer():
+        selected_answer = answer_var.get()
+        if selected_answer == correct_answer:
+            messagebox.showinfo("Correct!", "You selected the correct answer.")
+            update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=True)
+        else:
+            messagebox.showinfo("Incorrect", "You selected the wrong answer.")
+            update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=False)
+
+    root = tk.Tk()
+    root.title("RHEL Learning Timer")
+
+    seconds_left = minutes * 60
+
+    timer_label = tk.Label(root, text=f"Time left: {minutes:02}:00:00", font=("Helvetica", 16))
+    timer_label.pack(pady=20)
+
+    with open(questions_file, 'r') as f:
+        questions = f.readlines()
+
+    question = random.choice(questions).strip()
+    question_text, *answers, correct_answer = question.split('|')
+
+    question_label = tk.Label(root, text=f"Question: {question_text}", font=("Helvetica", 14))
+    question_label.pack(pady=10)
+
+    answer_var = tk.StringVar(value="")
+
+    for idx, answer in enumerate(answers, start=1):
+        radio_button = tk.Radiobutton(root, text=answer, variable=answer_var, value=str(idx), font=("Helvetica", 12))
+        radio_button.pack(anchor='w')
+
+    submit_button = tk.Button(root, text="Submit", command=check_answer, font=("Helvetica", 12))
+    submit_button.pack(pady=10)
+
+    root.after(1000, update_timer)
+    root.mainloop()
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -94,9 +146,6 @@ def main():
     # Start session
     print("Starting RHEL Learning Session...")
     show_timer(TIMER_MINUTES, QUESTIONS_FILE, SESSION_LOG)
-
-    # Add XP
-    add_xp(XP_FILE, LEVEL_FILE, SESSION_LOG)
 
     # Log session end
     log_session(SESSION_LOG, "end")

@@ -145,8 +145,12 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
 def open_firefox(url):
     print(f"Attempting to open Firefox with URL: {url}")
     if 'DISPLAY' in os.environ:
-        subprocess.Popen(['firefox', '--new-window', url], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        print("Firefox opened successfully.")
+        try:
+            subprocess.Popen(['firefox', '--new-window', url], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            print("Firefox opened successfully.")
+        except subprocess.CalledProcessError:
+            print("Firefox is already running. Reusing the existing instance.")
+            subprocess.Popen(['firefox', '--new-tab', url], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     else:
         print("No graphical environment detected. Skipping browser opening.")
 

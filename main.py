@@ -4,93 +4,135 @@ import psutil
 import tkinter as tk
 from tkinter import messagebox
 import random
-import sys
 import subprocess
 
-# Utility functions
-def initialize_assets(assets_dir, xp_file, level_file, session_log, total_time_file, questions_file):
-    if not os.path.exists(assets_dir):
-        os.makedirs(assets_dir)
-    if not os.path.exists(xp_file):
-        with open(xp_file, 'w') as f:
-            f.write('0')
-    if not os.path.exists(level_file):
-        with open(level_file, 'w') as f:
-            f.write('1')
-    if not os.path.exists(session_log):
-        open(session_log, 'w').close()
-    if not os.path.exists(total_time_file):
-        with open(total_time_file, 'w') as f:
-            f.write('0')
-    if not os.path.exists(questions_file):
-        raise FileNotFoundError(f"Questions file not found: {questions_file}")
+# Constants
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+ASSETS_DIR = os.path.join(SCRIPT_DIR, 'assets')
+XP_FILE = os.path.join(ASSETS_DIR, 'xp.txt')
+LEVEL_FILE = os.path.join(ASSETS_DIR, 'level.txt')
+SESSION_LOG = os.path.join(ASSETS_DIR, 'session.log')
+QUESTIONS_FILE = os.path.join(ASSETS_DIR, 'questions.txt')
+TOTAL_TIME_FILE = os.path.join(ASSETS_DIR, 'total_time.txt')
+URL = "https://rol.redhat.com"
+TIMER_MINUTES = 20
 
-def log_session(session_log, status):
-    with open(session_log, 'a') as f:
+# Utility Functions
+def initialize_assets():
+    """Ensure all necessary files and directories exist."""
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+    for file_path, default_content in [
+        (XP_FILE, '0'),
+        (LEVEL_FILE, '1'),
+        (SESSION_LOG, ''),
+        (TOTAL_TIME_FILE, '0'),
+    ]:
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as f:
+                f.write(default_content)
+    if not os.path.exists(QUESTIONS_FILE):
+        raise FileNotFoundError(f"Questions file not found: {QUESTIONS_FILE}")
+
+def log_session(status):
+    """Log session start or end with a timestamp."""
+    with open(SESSION_LOG, 'a') as f:
         f.write(f"Session {status}: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-def display_summary(total_time_file, xp_file, level_file):
-    with open(total_time_file, 'r') as f:
-        total_time = int(f.read().strip())
-    with open(xp_file, 'r') as f:
-        xp = int(f.read().strip())
-    with open(level_file, 'r') as f:
-        level = int(f.read().strip())
-    hours, minutes = divmod(total_time, 60)
+def display_summary():
+    """Display a summary of total time, XP, and level."""
+    try:
+        with open(TOTAL_TIME_FILE, 'r') as f:
+            total_time = int(f.read().strip() or 0)  # Handle empty file case
+    except FileNotFoundError:
+        total_time = 0
+
+    try:
+        with open(XP_FILE, 'r') as f:
+            xp = int(f.read().strip() or 0)
+    except FileNotFoundError:
+        xp = 0
+
+    try:
+        with open(LEVEL_FILE, 'r') as f:
+            level = int(f.read().strip() or 1)
+    except FileNotFoundError:
+        level = 1
+
+    hours, remainder = divmod(total_time, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    print(f"Welcome to the RHEL Learning Script!")
+    print(f"Total session time: {hours} hours, {minutes} minutes, and {seconds} seconds.")  # Ensure correct output
+    print(f"Current Level: {level}")
+    print(f"Current XP: {xp}")
+    print()
+
     return total_time, xp, level
 
 def kill_steam():
-    for proc in psutil.process_iter():
-        try:
-            if 'steam' in proc.name().lower():
-                proc.kill()
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
+    """Kill Steam only before the session starts."""
+    for proc in psutil.process_iter(['name']):
+        if proc.info['name'] and "steam" in proc.info['name'].lower():
+            print("Stopping Steam...")
+            proc.kill()
 
-def update_xp(xp_file, level_file, session_log, correct):
-    with open(xp_file, 'r') as f:
-        xp = int(f.read().strip())
-    with open(level_file, 'r') as f:
-        level = int(f.read().strip())
+def update_xp(correct):
+    """Update XP and level based on whether the question was answered correctly."""
+    with open(XP_FILE, 'r') as f:
+        xp = int(f.read().strip() or 0)
+    with open(LEVEL_FILE, 'r') as f:
+        level = int(f.read().strip() or 1)
+
     if correct:
-        new_xp = xp + 10
+        xp += 10
     else:
-        new_xp = max(0, xp - 5)  # Ensure XP doesn't go below 0
-    if new_xp >= level * 100:
+        xp = max(0, xp - 5)  # Ensure XP doesn't go below 0
+
+    if xp >= level * 100:
         level += 1
-        new_xp -= (level - 1) * 100
+        xp -= (level - 1) * 100
         messagebox.showinfo("LEVEL UP!", f"LEVEL UP! You are now Level {level}!")
-    with open(xp_file, 'w') as f:
-        f.write(str(new_xp))
-    with open(level_file, 'w') as f:
+
+    with open(XP_FILE, 'w') as f:
+        f.write(str(xp))
+    with open(LEVEL_FILE, 'w') as f:
         f.write(str(level))
-    with open(session_log, 'a') as f:
-        f.write(f"XP and level updated: {new_xp} XP, Level {level}\n")
-    return new_xp, level
+
+    with open(SESSION_LOG, 'a') as f:
+        f.write(f"XP and level updated: {xp} XP, Level {level}\n")
+
+    return xp, level
 
 def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     def update_timer():
-        nonlocal seconds_left
+        nonlocal seconds_left, elapsed_time
         if seconds_left > 0:
             seconds_left -= 1
+            elapsed_time += 1
             hours, remainder = divmod(seconds_left, 3600)
             minutes, seconds = divmod(remainder, 60)
             timer_label.config(text=f"Time left: {hours:02}:{minutes:02}:{seconds:02}")
             root.after(1000, update_timer)
         else:
-            messagebox.showinfo("Time's up!", "The session has ended.")
-            with open(session_log, 'a') as f:
-                f.write(f"Session duration: {minutes} minutes\n")
-            root.destroy()
+            end_session()
+
+    def end_session():
+        with open(session_log, 'a') as f:
+            f.write(f"Session duration: {elapsed_time // 60} minutes and {elapsed_time % 60} seconds\n")
+        with open(TOTAL_TIME_FILE, 'w') as f:
+            f.write(str(total_time + elapsed_time))
+        root.destroy()
+
+    def on_closing():
+        end_session()
 
     def check_answer():
         selected_answer = answer_var.get()
         if selected_answer == correct_answer:
             messagebox.showinfo("Correct!", "You selected the correct answer.")
-            new_xp, new_level = update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=True)
+            new_xp, new_level = update_xp(True)
         else:
             messagebox.showinfo("Incorrect", "You selected the wrong answer.")
-            new_xp, new_level = update_xp(XP_FILE, LEVEL_FILE, SESSION_LOG, correct=False)
+            new_xp, new_level = update_xp(False)
         for button in radio_buttons:
             button.config(state=tk.DISABLED)
         xp_label.config(text=f"XP: {new_xp}")
@@ -102,8 +144,10 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
 
     root = tk.Tk()
     root.title("RHEL Learning Timer")
+    root.protocol("WM_DELETE_WINDOW", on_closing)
 
     seconds_left = minutes * 60
+    elapsed_time = 0
 
     timer_label = tk.Label(root, text=f"Time left: {minutes:02}:00:00", font=("Helvetica", 16))
     timer_label.pack(pady=20)
@@ -114,7 +158,7 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     level_label = tk.Label(root, text=f"Level: {level}", font=("Helvetica", 14))
     level_label.pack(pady=5)
 
-    total_time_label = tk.Label(root, text=f"Total session time: {total_time // 60} hours and {total_time % 60} minutes", font=("Helvetica", 14))
+    total_time_label = tk.Label(root, text=f"Total session time: {total_time // 3600} hours, {(total_time % 3600) // 60} minutes, and {total_time % 60} seconds", font=("Helvetica", 14))
     total_time_label.pack(pady=5)
 
     with open(questions_file, 'r') as f:
@@ -154,38 +198,27 @@ def open_firefox(url):
     else:
         print("No graphical environment detected. Skipping browser opening.")
 
-# Constants
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-ASSETS_DIR = os.path.join(SCRIPT_DIR, 'assets')
-XP_FILE = os.path.join(ASSETS_DIR, 'xp.txt')
-LEVEL_FILE = os.path.join(ASSETS_DIR, 'level.txt')
-SESSION_LOG = os.path.join(ASSETS_DIR, 'session.log')
-QUESTIONS_FILE = os.path.join(ASSETS_DIR, 'questions.txt')
-TOTAL_TIME_FILE = os.path.join(ASSETS_DIR, 'total_time.txt')
-URL = "https://rol.redhat.com"
-TIMER_MINUTES = 20
-
 def main():
     # Initialize assets
-    initialize_assets(ASSETS_DIR, XP_FILE, LEVEL_FILE, SESSION_LOG, TOTAL_TIME_FILE, QUESTIONS_FILE)
+    initialize_assets()
 
     # Log session start
-    log_session(SESSION_LOG, "start")
+    log_session("start")
 
     # Display session summary
-    total_time, xp, level = display_summary(TOTAL_TIME_FILE, XP_FILE, LEVEL_FILE)
+    total_time, xp, level = display_summary()
 
-    # Open Firefox to the specified URL
+    # Stop Steam before session
+    kill_steam()
+
+    # Open Firefox with RHEL Learning
     open_firefox(URL)
 
     # Start session
     show_timer(TIMER_MINUTES, QUESTIONS_FILE, SESSION_LOG, total_time, xp, level)
 
     # Log session end
-    log_session(SESSION_LOG, "end")
+    log_session("end")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "kill_steam":
-        kill_steam()
-    else:
-        main()
+    main()

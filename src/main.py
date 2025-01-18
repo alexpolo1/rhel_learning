@@ -1,6 +1,9 @@
 import os
 import time
 import psutil
+import tkinter as tk
+import random
+import subprocess
 
 # Utility functions
 def initialize_assets(assets_dir, xp_file, level_file, session_log, total_time_file, questions_file):
@@ -45,8 +48,39 @@ def kill_steam():
 
 def show_timer(minutes, questions_file, session_log):
     print(f"The session will last {minutes} minutes.")
-    # Simulate timer and questions
-    time.sleep(minutes * 60)
+    
+    # Open the URL in the default web browser
+    subprocess.Popen(['xdg-open', URL])
+    
+    # Create a simple timer using tkinter
+    root = tk.Tk()
+    root.title("Timer")
+    
+    label = tk.Label(root, text="", font=("Helvetica", 48))
+    label.pack()
+
+    def update_timer():
+        nonlocal minutes
+        if minutes > 0:
+            minutes -= 1
+            label.config(text=f"{minutes} minutes remaining")
+            root.after(60000, update_timer)
+        else:
+            label.config(text="Time's up!")
+            root.after(1000, root.destroy)
+
+    update_timer()
+    root.mainloop()
+    
+    # Simulate answering questions
+    with open(questions_file, 'r') as f:
+        questions = f.readlines()
+    
+    random.shuffle(questions)
+    for question in questions[:5]:  # Assume we ask 5 questions
+        print(question.strip())
+        time.sleep(2)  # Simulate time taken to answer
+
     with open(session_log, 'a') as f:
         f.write(f"Session duration: {minutes} minutes\n")
 

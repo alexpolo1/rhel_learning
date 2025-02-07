@@ -109,11 +109,21 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
             seconds_left -= 1
             elapsed_time += 1
             hours, remainder = divmod(seconds_left, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            timer_label.config(text=f"Time left: {hours:02}:{minutes:02}:{seconds:02}")
+            minutes_left, seconds = divmod(remainder, 60)
+            timer_label.config(text=f"Time left: {hours:02}:{minutes_left:02}:{seconds:02}")
             root.after(1000, update_timer)
         else:
             end_session()
+
+    def update_rol_timer():
+        nonlocal subscription_days_left
+        if subscription_days_left > 0:
+            subscription_days_left -= 1 / (24 * 60 * 60)  # Subtract time in days
+            rol_label.config(text=f"ROL Subscription: {int(subscription_days_left)} days left")
+            root.after(1000, update_rol_timer)  # Update every second
+        else:
+            rol_label.config(text="ROL Subscription expired!")
+            messagebox.showwarning("Subscription Alert", "Your ROL Subscription has expired!")
 
     def end_session():
         with open(session_log, 'a') as f:
@@ -142,15 +152,21 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
         kill_steam()
         root.after(10000, periodic_kill_steam)  # Schedule to run every 10 seconds
 
+    # Initialize Tkinter window
     root = tk.Tk()
     root.title("RHEL Learning Timer")
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
     seconds_left = minutes * 60
     elapsed_time = 0
+    subscription_days_left = 25  # Start with 25 days left
 
+    # GUI Components
     timer_label = tk.Label(root, text=f"Time left: {minutes:02}:00:00", font=("Helvetica", 16))
     timer_label.pack(pady=20)
+
+    rol_label = tk.Label(root, text=f"ROL Subscription: {subscription_days_left} days left", font=("Helvetica", 14), fg="red")
+    rol_label.pack(pady=5)
 
     xp_label = tk.Label(root, text=f"XP: {xp}", font=("Helvetica", 14))
     xp_label.pack(pady=5)
@@ -161,6 +177,7 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     total_time_label = tk.Label(root, text=f"Total session time: {total_time // 3600} hours, {(total_time % 3600) // 60} minutes, and {total_time % 60} seconds", font=("Helvetica", 14))
     total_time_label.pack(pady=5)
 
+    # Load Questions
     with open(questions_file, 'r') as f:
         questions = f.readlines()
     random.shuffle(questions)  # Shuffle the questions to ensure randomness
@@ -182,9 +199,13 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     submit_button = tk.Button(root, text="Submit", command=check_answer, font=("Helvetica", 12))
     submit_button.pack(pady=10)
 
-    root.after(1000, update_timer)
-    root.after(10000, periodic_kill_steam)  # Start the periodic kill_steam function
+    # Start Timers
+    root.after(1000, update_timer)          # Start countdown timer
+    root.after(1000, update_rol_timer)      # Start ROL subscription countdown
+    root.after(10000, periodic_kill_steam)  # Periodically kill Steam
+
     root.mainloop()
+
 
 def open_firefox(url):
     print(f"Attempting to open Firefox with URL: {url}")

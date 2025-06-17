@@ -1,0 +1,20 @@
+Which command creates a compressed tar archive?|gzip dir|tar czf archive.tar.gz dir|bzip2 dir|2
+How do you append output to a file in Bash?|>>|>|&>|1
+Which command finds all files named "passwd" under /etc?|find /etc -name passwd|ls /etc/passwd|grep passwd /etc|1
+How do you switch to the root user?|sudo root|sudo su -|su -|3
+Which command shows the SELinux context of a file?|ls --context|ls -Z|ls -l|2
+How do you create a new user?|usermod|adduser|useradd|3
+Which command lists all running containers?|docker ps|podman ps|podman list|2
+How do you mount an NFS share?|mount -t ext4 /dev/sda1 /mnt|mount -t nfs server:/share /mnt|mount -o loop image.iso /mnt|2
+How do you schedule a one-time job for 5 minutes from now?|at now + 5 minutes|cron 5|crontab -e|1
+Which command sets a file's permissions to rwxr-xr--?|chmod 644 file|chmod 754 file|chmod 777 file|2
+How do you check the status of firewalld?|systemctl firewall|firewall-cmd --state|firewallctl status|2
+How do you extend a logical volume by 1G?|lvresize -L 1G /dev/vg/lv|lvcreate -L 1G /dev/vg/lv|lvextend -L +1G /dev/vg/lv|3
+How do you display the last 10 lines of a file?|less file|tail file|head file|2
+How do you change a user's password aging policy?|usermod|chage|passwd|2
+How do you list all available systemd targets?|systemctl list-units --type=target --all|systemctl list-active-targets|systemctl list-targets|3
+How do you display the current runlevel?|runlevel|who -r|systemctl get-default|1
+How do you set a service to start at boot?|systemctl start|systemctl boot|systemctl enable|3
+How do you transfer a file securely to a remote host?|scp file user@host:/path|rsync file user@host:/path|ftp file user@host:/path|1
+How do you display the UUID of a filesystem?|uuidgen|blkid|lsblk|2
+How do you reload the systemd daemon?|systemctl reload|systemctl restart|systemctl daemon-reload|3

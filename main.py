@@ -6,6 +6,7 @@ from tkinter import messagebox
 import random
 import subprocess
 from datetime import datetime, timedelta
+import webbrowser
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -107,7 +108,7 @@ def update_xp(correct):
 
     return xp, level
 
-def show_timer(minutes, questions_file, session_log, total_time, xp, level):
+def show_timer(minutes, questions_file, session_log, total_time, xp, level, root):
     def update_timer():
         nonlocal seconds_left, elapsed_time
         if seconds_left > 0:
@@ -189,10 +190,6 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
         kill_steam()
         root.after(10000, periodic_kill_steam)
 
-    root = tk.Tk()
-    root.title("RHEL Learning Timer")
-    root.protocol("WM_DELETE_WINDOW", on_closing)
-
     seconds_left = minutes * 60
     elapsed_time = 0
 
@@ -215,8 +212,6 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     root.after(1000, update_timer)
     root.after(1000, update_rol_timer)
     root.after(10000, periodic_kill_steam)
-
-    root.mainloop()
 
 def open_firefox(url):
     print(f"Attempting to open Firefox with URL: {url}")
@@ -245,14 +240,27 @@ def shuffle_questions(input_file, output_file):
             new_correct = old_indices.index(correct) + 1
             f.write(f"{q}|{'|'.join(new_answers)}|{new_correct}\n")
 
+def open_learning_links():
+    urls = [
+        "https://rol.redhat.com",
+        "https://docs.google.com/spreadsheets/d/1ZQpE1fQoc-lyElFmvoQLW-2tOclMsMENYKiehu3jrxc/edit?gid=0#gid=0"
+    ]
+    for url in urls:
+        webbrowser.open_new_tab(url)
+
 def main():
     initialize_assets()
     log_session("start")
     total_time, xp, level = display_summary()
     kill_steam()
     open_firefox(URL)
-    show_timer(TIMER_MINUTES, QUESTIONS_SHUFFLED_FILE, SESSION_LOG, total_time, xp, level)
+    open_learning_links()
+    root = tk.Tk()
+    root.title("RHEL Learning Timer")
+    root.protocol("WM_DELETE_WINDOW", lambda: log_session(...))
+    show_timer(TIMER_MINUTES, QUESTIONS_SHUFFLED_FILE, SESSION_LOG, total_time, xp, level, root)
     log_session("end")
+    root.mainloop()
 
 if __name__ == "__main__":
     shuffle_questions(QUESTIONS_FILE, QUESTIONS_SHUFFLED_FILE)

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import messagebox
 import random
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -14,12 +14,13 @@ XP_FILE = os.path.join(ASSETS_DIR, 'xp.txt')
 LEVEL_FILE = os.path.join(ASSETS_DIR, 'level.txt')
 SESSION_LOG = os.path.join(ASSETS_DIR, 'session.log')
 QUESTIONS_FILE = os.path.join(ASSETS_DIR, 'questions.txt')
+QUESTIONS_SHUFFLED_FILE = os.path.join(ASSETS_DIR, 'questions_shuffled.txt')
 TOTAL_TIME_FILE = os.path.join(ASSETS_DIR, 'total_time.txt')
 URL = "https://rol.redhat.com"
 TIMER_MINUTES = 60
 
 # Set the ROL subscription expiration date
-SUBSCRIPTION_END_DATE = datetime(2026, 2, 23)  # Adjust this date based on your actual ROL subscription end
+SUBSCRIPTION_END_DATE = datetime.now() + timedelta(days=343)
 
 # Utility Functions
 def initialize_assets():
@@ -140,18 +141,49 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     def on_closing():
         end_session()
 
+    # Load & parse questions
+    with open(questions_file, 'r') as f:
+        lines = [l.strip() for l in f if l.strip()]
+    question_line = random.choice(lines)
+    parts = question_line.split('|')
+    question_text = parts[0]
+    answers = parts[1:-1]
+    correct_idx = int(parts[-1]) - 1  # zero-based
+
+    # Build a list of (text, is_correct) and shuffle
+    opts = []
+    for idx, ans in enumerate(answers):
+        opts.append({'text': ans, 'correct': (idx == correct_idx)})
+    random.shuffle(opts)
+
+    # Display question
+    question_label = tk.Label(root, text=f"Question: {question_text}", font=("Helvetica", 14))
+    question_label.pack(pady=10)
+
+    answer_var = tk.StringVar(value="")
+    radio_buttons = []
+    for opt in opts:
+        rb = tk.Radiobutton(root, text=opt['text'],
+                            variable=answer_var, value=opt['text'],
+                            font=("Helvetica", 12))
+        rb.pack(anchor='w')
+        radio_buttons.append(rb)
+
     def check_answer():
-        selected_answer = answer_var.get()
-        if selected_answer == correct_answer:
-            messagebox.showinfo("Correct!", "You selected the correct answer.")
+        sel = answer_var.get()
+        correct = any(o['text'] == sel and o['correct'] for o in opts)
+        if correct:
+            messagebox.showinfo("Correct!", "You chose the right answer.")
             new_xp, new_level = update_xp(True)
         else:
-            messagebox.showinfo("Incorrect", "You selected the wrong answer.")
+            messagebox.showinfo("Incorrect", "Sorry, that’s not correct.")
             new_xp, new_level = update_xp(False)
-        for button in radio_buttons:
-            button.config(state=tk.DISABLED)
+        for b in radio_buttons: b.config(state=tk.DISABLED)
         xp_label.config(text=f"XP: {new_xp}")
         level_label.config(text=f"Level: {new_level}")
+
+    submit_btn = tk.Button(root, text="Submit", command=check_answer)
+    submit_btn.pack(pady=5)
 
     def periodic_kill_steam():
         kill_steam()
@@ -180,28 +212,6 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     total_time_label = tk.Label(root, text=f"Total session time: {total_time // 3600} hours, {(total_time % 3600) // 60} minutes, and {total_time % 60} seconds", font=("Helvetica", 14))
     total_time_label.pack(pady=5)
 
-    # Load Questions
-    with open(questions_file, 'r') as f:
-        questions = f.readlines()
-    random.shuffle(questions)
-
-    question = random.choice(questions).strip()
-    question_text, *answers, correct_answer = question.split('|')
-
-    question_label = tk.Label(root, text=f"Question: {question_text}", font=("Helvetica", 14))
-    question_label.pack(pady=10)
-
-    answer_var = tk.StringVar(value="")
-    radio_buttons = []
-
-    for idx, answer in enumerate(answers, start=1):
-        radio_button = tk.Radiobutton(root, text=answer, variable=answer_var, value=str(idx), font=("Helvetica", 12))
-        radio_button.pack(anchor='w')
-        radio_buttons.append(radio_button)
-
-    submit_button = tk.Button(root, text="Submit", command=check_answer, font=("Helvetica", 12))
-    submit_button.pack(pady=10)
-
     root.after(1000, update_timer)
     root.after(1000, update_rol_timer)
     root.after(10000, periodic_kill_steam)
@@ -220,15 +230,31 @@ def open_firefox(url):
     else:
         print("No graphical environment detected. Skipping browser opening.")
 
+def shuffle_questions(input_file, output_file):
+    """Shuffle questions and answers, updating the correct answer index."""
+    with open(input_file) as f:
+        lines = [l.strip() for l in f if l.strip()]
+
+    with open(output_file, 'w') as f:
+        for line in lines:
+            parts = line.split('|')
+            q, answers, correct = parts[0], parts[1:-1], int(parts[-1])
+            zipped = list(zip(answers, range(1, len(answers)+1)))
+            random.shuffle(zipped)
+            new_answers, old_indices = zip(*zipped)
+            new_correct = old_indices.index(correct) + 1
+            f.write(f"{q}|{'|'.join(new_answers)}|{new_correct}\n")
+
 def main():
     initialize_assets()
     log_session("start")
     total_time, xp, level = display_summary()
     kill_steam()
     open_firefox(URL)
-    show_timer(TIMER_MINUTES, QUESTIONS_FILE, SESSION_LOG, total_time, xp, level)
+    show_timer(TIMER_MINUTES, QUESTIONS_SHUFFLED_FILE, SESSION_LOG, total_time, xp, level)
     log_session("end")
 
 if __name__ == "__main__":
+    shuffle_questions(QUESTIONS_FILE, QUESTIONS_SHUFFLED_FILE)
     main()
 

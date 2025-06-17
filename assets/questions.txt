@@ -1,68 +1,20 @@
-Which command is used to temporarily change a SELinux boolean?|semanage boolean|setsebool|getsebool|2
-How do you enable a systemd service at boot?|systemctl enable|systemctl start|systemctl active|1
-Which command lists all active SELinux booleans?|getsebool -a|semanage boolean -l|setsebool|2
-How do you force a container to stop?|podman kill|podman stop|podman rm|1
-Which systemctl command switches to another target?|systemctl isolate|systemctl switch|systemctl target|1
-How do you check the status of a SELinux boolean?|semanage boolean|getsebool|setsebool -P|2
-How do you create a new partition with parted?|parted /dev/vdb mkpart|mkfs.ext4 /dev/vdb|fdisk /dev/vdb|1
-Which command lists all configured SELinux ports?|semanage port -l|getsebool -a|setsebool|1
-Which command lists all systemd targets?|systemctl list-units --type=target --all|systemctl list-targets|systemctl list-active-targets|1
-How do you persistently change a SELinux boolean?|setsebool -P|getsebool -P|semanage boolean -P|1
-Which command shows the partition table?|fdisk -l|parted print|lsblk|1
-How do you restart a systemd service?|systemctl restart|systemctl reload|service restart|1
-Which command shows all running systemd services?|systemctl list-units --type=service|systemctl status --all|systemctl active-services|1
-How do you schedule a one-time job with cron?|at|crontab -e|cron add-job|1
-How do you list installed packages?|rpm -qa|yum list installed|dnf list installed|1
-How do you add a new user?|useradd|adduser|usermod|1
-How do you change file ownership?|chown user:group file|chmod user file|ls -l file|1
-Which command shows disk usage of a directory?|du -sh /dir|df -h /dir|ls -lh /dir|1
-How do you create a new logical volume?|lvcreate -L 10G -n volume group|vgcreate -L 10G|lvextend -L +10G volume|1
-How do you deactivate a user?|passwd -l user|usermod -L user|userdel user|2
-How do you view all available network interfaces?|ip addr|ifconfig|netstat -i|1
-How do you display the system uptime?|uptime|top|vmstat|1
-How do you view swap usage?|free -h|swapon -s|cat /proc/swaps|1
-How do you reload firewalld rules?|firewall-cmd --reload|iptables reload|firewallctl restart|1
-How do you list kernel modules?|lsmod|modprobe -l|dmesg|1
-How do you analyze CPU usage?|top|htop|vmstat|1
-Which command lists active TCP connections?|netstat -tulpn|ss -tulpn|lsof -i|1
-How do you stop a systemd service?|systemctl stop|systemctl disable|systemctl restart|1
-How do you check the DNS cache?|systemd-resolve --statistics|systemctl dns|dns cache|1
-What command is used to list all files in a directory?|ls -l|ls -a|ls -la|ls -lh|2
-What command is used to change the current directory?|cd|chdir|change|dir|1
-What command is used to display the current working directory?|pwd|cwd|dir|ls|1
-What command is used to create a new directory?|mkdir|newdir|createdir|makedir|1
-What command is used to remove a file?|rm|delete|remove|erase|1
-What command is used to copy files?|cp|copy|duplicate|move|1
-What command is used to move files?|mv|move|transfer|shift|1
-What command is used to display the contents of a file?|cat|show|display|view|1
-What command is used to search for a pattern in a file?|grep|search|find|look|1
-What command is used to display the first few lines of a file?|head|top|start|begin|1
-What command is used to display the last few lines of a file?|tail|end|finish|bottom|1
-What command is used to display the manual page for a command?|man|help|info|guide|1
-What command is used to change file permissions?|chmod|chperm|chown|chattr|1
-What command is used to change file ownership?|chown|chperm|chmod|chattr|1
-What command is used to display disk usage?|du|df|disk|usage|1
-What command is used to display free disk space?|df|du|disk|free|1
-What command is used to display system information?|uname|sysinfo|info|system|1
-What command is used to display running processes?|ps|proc|process|run|1
-What command is used to terminate a process?|kill|terminate|end|stop|1
-What command is used to display network configuration?|ifconfig|netconfig|network|config|1
-What command is used to display the routing table?|route|netstat|traceroute|path|1
-What command is used to display open network connections?|netstat|conn|connections|open|1
-What command is used to display the hostname?|hostname|host|name|display|1
-What command is used to change the hostname?|hostnamectl|hostctl|namectl|changehost|1
-What command is used to display the current date and time?|date|time|datetime|now|1
-What command is used to set the system date and time?|date -s|time -s|datetime -s|setdate|1
-What command is used to display the system uptime?|uptime|time|sysuptime|up|1
-What command is used to reboot the system?|reboot|restart|shutdown -r|boot|1
-What command is used to shut down the system?|shutdown|halt|poweroff|stop|1
-What command is used to display the contents of a directory?|ls|dir|list|show|1
-What command is used to display the current user's ID?|id|userid|uid|whoami|1
-What command is used to switch to another user?|su|switch|user|login|1
-What command is used to display the system's kernel version?|uname -r|kernel|version|sysver|1
-What command is used to display the system's architecture?|uname -m|arch|architecture|sysarch|1
-What command is used to display the system's release information?|uname -a|release|info|sysinfo|1
-What command is used to display the system's hardware information?|lshw|hwinfo|hardware|sysinfo|1
-What command is used to display the system's memory usage?|free|mem|memory|usage|1
-What command is used to display the system's CPU usage?|top|cpu|usage|syscpu|1
-What command is used to display the system's load average?|uptime|load|average|sysload|1
+Which command creates a compressed tar archive?|gzip dir|tar czf archive.tar.gz dir|bzip2 dir|2
+How do you append output to a file in Bash?|>|&>|>>|3
+Which command finds all files named "passwd" under /etc?|find /etc -name passwd|grep passwd /etc|ls /etc/passwd|1
+How do you switch to the root user?|sudo su -|su -|sudo root|2
+Which command shows the SELinux context of a file?|ls -Z|ls -l|ls --context|1
+How do you create a new user?|usermod|useradd|adduser|2
+Which command lists all running containers?|podman ps|podman list|docker ps|1
+How do you mount an NFS share?|mount -t nfs server:/share /mnt|mount -t ext4 /dev/sda1 /mnt|mount -o loop image.iso /mnt|1
+How do you schedule a one-time job for 5 minutes from now?|at now + 5 minutes|cron 5|crontab -e|1
+Which command sets a file's permissions to rwxr-xr--?|chmod 754 file|chmod 644 file|chmod 777 file|1
+How do you check the status of firewalld?|firewall-cmd --state|firewallctl status|systemctl firewall|1
+How do you extend a logical volume by 1G?|lvextend -L +1G /dev/vg/lv|lvcreate -L 1G /dev/vg/lv|lvresize -L 1G /dev/vg/lv|1
+How do you display the last 10 lines of a file?|tail file|head file|less file|1
+How do you change a user's password aging policy?|chage|passwd|usermod|1
+How do you list all available systemd targets?|systemctl list-units --type=target --all|systemctl list-targets|systemctl list-active-targets|2
+How do you display the current runlevel?|runlevel|who -r|systemctl get-default|1
+How do you set a service to start at boot?|systemctl enable|systemctl start|systemctl boot|1
+How do you transfer a file securely to a remote host?|scp file user@host:/path|ftp file user@host:/path|rsync file user@host:/path|1
+How do you display the UUID of a filesystem?|blkid|lsblk|uuidgen|1
+How do you reload the systemd daemon?|systemctl daemon-reload|systemctl reload|systemctl restart|1

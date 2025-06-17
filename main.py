@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import messagebox
 import random
 import subprocess
+from datetime import datetime
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -15,7 +16,10 @@ SESSION_LOG = os.path.join(ASSETS_DIR, 'session.log')
 QUESTIONS_FILE = os.path.join(ASSETS_DIR, 'questions.txt')
 TOTAL_TIME_FILE = os.path.join(ASSETS_DIR, 'total_time.txt')
 URL = "https://rol.redhat.com"
-TIMER_MINUTES = 20
+TIMER_MINUTES = 60
+
+# Set the ROL subscription expiration date
+SUBSCRIPTION_END_DATE = datetime(2026, 2, 23)  # Adjust this date based on your actual ROL subscription end
 
 # Utility Functions
 def initialize_assets():
@@ -42,7 +46,7 @@ def display_summary():
     """Display a summary of total time, XP, and level."""
     try:
         with open(TOTAL_TIME_FILE, 'r') as f:
-            total_time = int(f.read().strip() or 0)  # Handle empty file case
+            total_time = int(f.read().strip() or 0)
     except FileNotFoundError:
         total_time = 0
 
@@ -61,7 +65,7 @@ def display_summary():
     hours, remainder = divmod(total_time, 3600)
     minutes, seconds = divmod(remainder, 60)
     print(f"Welcome to the RHEL Learning Script!")
-    print(f"Total session time: {hours} hours, {minutes} minutes, and {seconds} seconds.")  # Ensure correct output
+    print(f"Total session time: {hours} hours, {minutes} minutes, and {seconds} seconds.")
     print(f"Current Level: {level}")
     print(f"Current XP: {xp}")
     print()
@@ -85,7 +89,7 @@ def update_xp(correct):
     if correct:
         xp += 10
     else:
-        xp = max(0, xp - 5)  # Ensure XP doesn't go below 0
+        xp = max(0, xp - 5)
 
     if xp >= level * 100:
         level += 1
@@ -116,11 +120,12 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
             end_session()
 
     def update_rol_timer():
-        nonlocal subscription_days_left
-        if subscription_days_left > 0:
-            subscription_days_left -= 1 / (24 * 60 * 60)  # Subtract time in days
-            rol_label.config(text=f"ROL Subscription: {int(subscription_days_left)} days left")
-            root.after(1000, update_rol_timer)  # Update every second
+        today = datetime.now()
+        days_left = (SUBSCRIPTION_END_DATE - today).days
+
+        if days_left > 0:
+            rol_label.config(text=f"ROL Subscription: {days_left} days left")
+            root.after(60000, update_rol_timer)  # Update every minute
         else:
             rol_label.config(text="ROL Subscription expired!")
             messagebox.showwarning("Subscription Alert", "Your ROL Subscription has expired!")
@@ -150,22 +155,20 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
 
     def periodic_kill_steam():
         kill_steam()
-        root.after(10000, periodic_kill_steam)  # Schedule to run every 10 seconds
+        root.after(10000, periodic_kill_steam)
 
-    # Initialize Tkinter window
     root = tk.Tk()
     root.title("RHEL Learning Timer")
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
     seconds_left = minutes * 60
     elapsed_time = 0
-    subscription_days_left = 25  # Start with 25 days left
 
     # GUI Components
     timer_label = tk.Label(root, text=f"Time left: {minutes:02}:00:00", font=("Helvetica", 16))
     timer_label.pack(pady=20)
 
-    rol_label = tk.Label(root, text=f"ROL Subscription: {subscription_days_left} days left", font=("Helvetica", 14), fg="red")
+    rol_label = tk.Label(root, text="ROL Subscription: Calculating...", font=("Helvetica", 14), fg="red")
     rol_label.pack(pady=5)
 
     xp_label = tk.Label(root, text=f"XP: {xp}", font=("Helvetica", 14))
@@ -180,7 +183,7 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     # Load Questions
     with open(questions_file, 'r') as f:
         questions = f.readlines()
-    random.shuffle(questions)  # Shuffle the questions to ensure randomness
+    random.shuffle(questions)
 
     question = random.choice(questions).strip()
     question_text, *answers, correct_answer = question.split('|')
@@ -199,13 +202,11 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level):
     submit_button = tk.Button(root, text="Submit", command=check_answer, font=("Helvetica", 12))
     submit_button.pack(pady=10)
 
-    # Start Timers
-    root.after(1000, update_timer)          # Start countdown timer
-    root.after(1000, update_rol_timer)      # Start ROL subscription countdown
-    root.after(10000, periodic_kill_steam)  # Periodically kill Steam
+    root.after(1000, update_timer)
+    root.after(1000, update_rol_timer)
+    root.after(10000, periodic_kill_steam)
 
     root.mainloop()
-
 
 def open_firefox(url):
     print(f"Attempting to open Firefox with URL: {url}")
@@ -220,26 +221,14 @@ def open_firefox(url):
         print("No graphical environment detected. Skipping browser opening.")
 
 def main():
-    # Initialize assets
     initialize_assets()
-
-    # Log session start
     log_session("start")
-
-    # Display session summary
     total_time, xp, level = display_summary()
-
-    # Stop Steam before session
     kill_steam()
-
-    # Open Firefox with RHEL Learning
     open_firefox(URL)
-
-    # Start session
     show_timer(TIMER_MINUTES, QUESTIONS_FILE, SESSION_LOG, total_time, xp, level)
-
-    # Log session end
     log_session("end")
 
 if __name__ == "__main__":
     main()
+

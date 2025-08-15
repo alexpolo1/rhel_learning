@@ -135,7 +135,17 @@ TOTAL_TIME_FILE = os.path.join(ASSETS_DIR, 'total_time.txt')
 QUESTIONS_FILE = os.path.join(ASSETS_DIR, 'questions.txt')
 QUESTIONS_SHUFFLED_FILE = os.path.join(ASSETS_DIR, 'questions_shuffled.txt')
 DB_PATH = os.path.join(SCRIPT_DIR, 'rhel_learning.db')
-SUBSCRIPTION_END_DATE = datetime(2026, 5, 26)
+import subprocess
+DAYS_LEFT_FROM_FIXED_DATE = 284
+FIXED_START_DATE_STR = '2025-08-15'
+FIXED_START_DATE = datetime.strptime(FIXED_START_DATE_STR, '%Y-%m-%d')
+# Get current system date using 'date' command for reliability
+try:
+    current_date_str = subprocess.check_output(['date', '+%Y-%m-%d']).decode().strip()
+    CURRENT_DATE = datetime.strptime(current_date_str, '%Y-%m-%d')
+except Exception:
+    CURRENT_DATE = datetime.now()
+SUBSCRIPTION_END_DATE = FIXED_START_DATE + timedelta(days=DAYS_LEFT_FROM_FIXED_DATE)
 
 def format_time(seconds):
     hours, remainder = divmod(seconds, 3600)
@@ -557,6 +567,7 @@ def main():
     total_time, xp, level = display_summary()
     kill_steam()
     # open_firefox removed; open_learning_links is used instead
+    # Always open learning links on startup
     open_learning_links()
     root = tk.Tk()
     root.title("RHEL Learning Timer")

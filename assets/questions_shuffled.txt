@@ -1,38 +1,38 @@
-General|Which command creates a compressed tar archive?|bzip2 dir|gzip dir|tar czf archive.tar.gz dir|3
-General|How do you append output to a file in Bash?|&>|>|>>|3
-General|Which command finds all files named "passwd" under /etc?|ls /etc/passwd|find /etc -name passwd|grep passwd /etc|2
-General|How do you switch to the root user?|sudo root|su -|sudo su -|2
+General|Which command creates a compressed tar archive?|bzip2 dir|tar czf archive.tar.gz dir|gzip dir|2
+General|How do you append output to a file in Bash?|>>|&>|>|1
+General|Which command finds all files named "passwd" under /etc?|ls /etc/passwd|grep passwd /etc|find /etc -name passwd|3
+General|How do you switch to the root user?|sudo su -|su -|sudo root|2
 General|Which command shows the SELinux context of a file?|ls -Z|ls --context|ls -l|1
-General|How do you create a new user?|usermod|adduser|useradd|3
-General|Which command lists all running containers?|podman ps|podman list|docker ps|1
-General|How do you mount an NFS share?|mount -o loop image.iso /mnt|mount -t nfs server:/share /mnt|mount -t ext4 /dev/sda1 /mnt|2
-General|How do you schedule a one-time job for 5 minutes from now?|cron 5|crontab -e|at now + 5 minutes|3
-General|Which command sets a file's permissions to rwxr-xr--?|chmod 754 file|chmod 644 file|chmod 777 file|1
-General|How do you check the status of firewalld?|firewall-cmd --state|firewallctl status|systemctl firewall|1
-General|How do you extend a logical volume by 1G?|lvresize -L 1G /dev/vg/lv|lvcreate -L 1G /dev/vg/lv|lvextend -L +1G /dev/vg/lv|3
-General|How do you display the last 10 lines of a file?|head file|less file|tail file|3
-General|How do you change a user's password aging policy?|passwd|usermod|chage|3
+General|How do you create a new user?|adduser|useradd|usermod|2
+General|Which command lists all running containers?|docker ps|podman ps|podman list|2
+General|How do you mount an NFS share?|mount -t nfs server:/share /mnt|mount -o loop image.iso /mnt|mount -t ext4 /dev/sda1 /mnt|1
+General|How do you schedule a one-time job for 5 minutes from now?|at now + 5 minutes|crontab -e|cron 5|1
+General|Which command sets a file's permissions to rwxr-xr--?|chmod 644 file|chmod 777 file|chmod 754 file|3
+General|How do you check the status of firewalld?|firewallctl status|systemctl firewall|firewall-cmd --state|3
+General|How do you extend a logical volume by 1G?|lvcreate -L 1G /dev/vg/lv|lvresize -L 1G /dev/vg/lv|lvextend -L +1G /dev/vg/lv|3
+General|How do you display the last 10 lines of a file?|head file|tail file|less file|2
+General|How do you change a user's password aging policy?|chage|usermod|passwd|1
 General|How do you list all available systemd targets?|systemctl list-units --type=target --all|systemctl list-active-targets|systemctl list-targets|3
 General|How do you display the current runlevel?|who -r|systemctl get-default|runlevel|3
-General|How do you set a service to start at boot?|systemctl boot|systemctl enable|systemctl start|2
-General|How do you transfer a file securely to a remote host?|rsync file user@host:/path|scp file user@host:/path|ftp file user@host:/path|2
-General|How do you display the UUID of a filesystem?|lsblk|uuidgen|blkid|3
+General|How do you set a service to start at boot?|systemctl enable|systemctl boot|systemctl start|1
+General|How do you transfer a file securely to a remote host?|scp file user@host:/path|rsync file user@host:/path|ftp file user@host:/path|1
+General|How do you display the UUID of a filesystem?|uuidgen|lsblk|blkid|3
 General|How do you reload the systemd daemon?|systemctl daemon-reload|systemctl restart|systemctl reload|1
-Networking|How do you set the hostname to mars.domain250.example.com?|nmcli con mod hostname mars.domain250.example.com|hostnamectl set-hostname mars.domain250.example.com|echo "mars.domain250.example.com" > /etc/hostname|2
-Networking|Which command sets the IP address, gateway, and DNS for enp0s3?|nmcli connection modify enp0s3 autoconnect yes ipv4.method manual ipv4.addresses 172.25.250.100 ipv4.gateway 172.25.250.254 ipv4.dns 172.25.250.254|ifconfig enp0s3 172.25.250.100 netmask 255.255.255.0|ip addr add 172.25.250.100/24 dev enp0s3|1
-SELinux|How do you allow httpd to serve content on port 82?|semanage port -a -t http_port_t -p tcp 82|firewall-cmd --add-port=82/tcp --permanent|setenforce 0|1
-User Management|Which command creates a user 'natasha' and adds to group 'sysmgrs'?|useradd natasha -G sysmgrs|useradd -g sysmgrs natasha|adduser natasha sysmgrs|1
-User Management|How do you create a user 'sarah' with no interactive shell?|useradd sarah -G nologin|adduser sarah --no-login|useradd sarah --shell /sbin/nologin|3
-Scheduling|What is the correct crontab entry to log "EX200 in progress" every 2 min?|*/2 * * * * logger "EX200 in progress"|2 * * * * logger "EX200 in progress"|0 2 * * * logger "EX200 in progress"|1
-Permissions|How do you give user 'natasha' rw access to /var/tmp/fstab using ACL?|chown natasha /var/tmp/fstab|chmod 600 /var/tmp/fstab|setfacl -m u:natasha:rw- /var/tmp/fstab|3
-Permissions|How do you deny user 'harry' all access to /var/tmp/fstab using ACL?|chmod 000 /var/tmp/fstab|setfacl -m u:harry:- /var/tmp/fstab|chown nobody /var/tmp/fstab|2
-Permissions|How do you set group ownership of /home/managers to sysmgrs and setgid?|setfacl -m g:sysmgrs:rwx /home/managers|chown root:sysmgrs /home/managers && chmod g+s /home/managers|chmod 770 /home/managers|2
+Networking|How do you set the hostname to mars.domain250.example.com?|nmcli con mod hostname mars.domain250.example.com|echo "mars.domain250.example.com" > /etc/hostname|hostnamectl set-hostname mars.domain250.example.com|3
+Networking|Which command sets the IP address, gateway, and DNS for enp0s3?|ip addr add 172.25.250.100/24 dev enp0s3|ifconfig enp0s3 172.25.250.100 netmask 255.255.255.0|nmcli connection modify enp0s3 autoconnect yes ipv4.method manual ipv4.addresses 172.25.250.100 ipv4.gateway 172.25.250.254 ipv4.dns 172.25.250.254|3
+SELinux|How do you allow httpd to serve content on port 82?|semanage port -a -t http_port_t -p tcp 82|setenforce 0|firewall-cmd --add-port=82/tcp --permanent|1
+User Management|Which command creates a user 'natasha' and adds to group 'sysmgrs'?|useradd -g sysmgrs natasha|useradd natasha -G sysmgrs|adduser natasha sysmgrs|2
+User Management|How do you create a user 'sarah' with no interactive shell?|useradd sarah -G nologin|useradd sarah --shell /sbin/nologin|adduser sarah --no-login|2
+Scheduling|What is the correct crontab entry to log "EX200 in progress" every 2 min?|2 * * * * logger "EX200 in progress"|0 2 * * * logger "EX200 in progress"|*/2 * * * * logger "EX200 in progress"|3
+Permissions|How do you give user 'natasha' rw access to /var/tmp/fstab using ACL?|chown natasha /var/tmp/fstab|setfacl -m u:natasha:rw- /var/tmp/fstab|chmod 600 /var/tmp/fstab|2
+Permissions|How do you deny user 'harry' all access to /var/tmp/fstab using ACL?|setfacl -m u:harry:- /var/tmp/fstab|chown nobody /var/tmp/fstab|chmod 000 /var/tmp/fstab|1
+Permissions|How do you set group ownership of /home/managers to sysmgrs and setgid?|setfacl -m g:sysmgrs:rwx /home/managers|chmod 770 /home/managers|chown root:sysmgrs /home/managers && chmod g+s /home/managers|3
 NTP|How do you configure chrony to use materials.example.com as NTP server?|Edit /etc/chrony.conf and add 'server materials.example.com iburst'|ntpdate materials.example.com|systemctl enable ntpd|1
-Autofs|How do you configure autofs to mount remoteuser1's home from materials.example.com?|autofs --mount /rhome/remoteuser1|mount -t nfs materials.example.com:/rhome/remoteuser1 /rhome/remoteuser1|Add '/rhome /etc/auto.rhome' to /etc/auto.master and 'remoteuser1 -rw materials.example.com:/rhome/remoteuser1' to /etc/auto.rhome|3
+Autofs|How do you configure autofs to mount remoteuser1's home from materials.example.com?|Add '/rhome /etc/auto.rhome' to /etc/auto.master and 'remoteuser1 -rw materials.example.com:/rhome/remoteuser1' to /etc/auto.rhome|autofs --mount /rhome/remoteuser1|mount -t nfs materials.example.com:/rhome/remoteuser1 /rhome/remoteuser1|1
 User Management|How do you create user 'manalo' with UID 3533?|useradd manalo -U 3533|adduser manalo --uid=3533|useradd -u 3533 manalo|3
-Archiving|How do you create a gzip archive of /usr/local as /root/backup.tar.gz?|tar -cvf /root/backup.tar.gz /usr/local|tar -czvf /root/backup.tar.gz /usr/local|gzip /usr/local > /root/backup.tar.gz|2
+Archiving|How do you create a gzip archive of /usr/local as /root/backup.tar.gz?|gzip /usr/local > /root/backup.tar.gz|tar -cvf /root/backup.tar.gz /usr/local|tar -czvf /root/backup.tar.gz /usr/local|3
 Swap|How do you add a 512M swap partition and make it persistent?|swapon /dev/vdb3|echo "/dev/vdb3 swap swap defaults 0 0" >> /etc/fstab|Create partition, mkswap /dev/vdb3, add UUID to /etc/fstab|3
-LVM|How do you create a logical volume 'qa' of 60 PE in group 'qagroup' and format ext3?|lvcreate -n qa -l 60 qagroup && mkfs.ext4 /dev/qagroup/qa|lvcreate -n qa -l 60 qagroup && mkfs.ext3 /dev/qagroup/qa|lvcreate -n qa -L 60M qagroup && mkfs.ext3 /dev/qagroup/qa|2
-Permissions|How do you give natasha rw and harry no access to /var/tmp/fstab using ACL?|setfacl -m u:natasha:rw-,u:harry:- /var/tmp/fstab|setfacl -m u:natasha:rw- /var/tmp/fstab|chmod 600 /var/tmp/fstab|1
-Scripting|How do you find all files under /usr less than 10M with sgid and save to /root/myfile?|find /usr -size -10M -perm -2000 > /root/myfile|find /usr -size -10M -perm -4000 > /root/myfile|find /usr -size +10M -perm -2000 > /root/myfile|1
-Scripting|How do you create a script to find SUID files between 30k and 50k in /usr?|find /usr -size +30k -size -50k -perm /g=s > /root/newfiles|find /usr -size +30k -size -50k -perm /u=s > /root/newfiles|find /usr -size +30k -size -50k -perm /o=s > /root/newfiles|2
+LVM|How do you create a logical volume 'qa' of 60 PE in group 'qagroup' and format ext3?|lvcreate -n qa -L 60M qagroup && mkfs.ext3 /dev/qagroup/qa|lvcreate -n qa -l 60 qagroup && mkfs.ext4 /dev/qagroup/qa|lvcreate -n qa -l 60 qagroup && mkfs.ext3 /dev/qagroup/qa|3
+Permissions|How do you give natasha rw and harry no access to /var/tmp/fstab using ACL?|setfacl -m u:natasha:rw- /var/tmp/fstab|setfacl -m u:natasha:rw-,u:harry:- /var/tmp/fstab|chmod 600 /var/tmp/fstab|2
+Scripting|How do you find all files under /usr less than 10M with sgid and save to /root/myfile?|find /usr -size -10M -perm -4000 > /root/myfile|find /usr -size +10M -perm -2000 > /root/myfile|find /usr -size -10M -perm -2000 > /root/myfile|3
+Scripting|How do you create a script to find SUID files between 30k and 50k in /usr?|find /usr -size +30k -size -50k -perm /g=s > /root/newfiles|find /usr -size +30k -size -50k -perm /o=s > /root/newfiles|find /usr -size +30k -size -50k -perm /u=s > /root/newfiles|3

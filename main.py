@@ -364,8 +364,7 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level, root
     question_frame.pack(pady=10)
 
     def ask_next_question():
-        nonlocal question_idx, total_questions
-        nonlocal total_correct, total_questions
+        nonlocal question_idx, total_questions, total_correct
         if question_idx >= len(questions_to_ask):
             # Show score page at end
             total_score = int((total_correct / total_questions) * max_score) if total_questions else 0

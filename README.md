@@ -14,58 +14,81 @@ rhel_learning
 │   │   ├── session.log
 │   │   ├── questions.txt
 │   │   └── total_time.txt
-│   ├── utils
-│   │   ├── __init__.py
-│   │   ├── assets.py
-│   │   ├── session.py
-│   │   ├── steam.py
-│   │   ├── timer.py
-│   │   └── xp.py
-├── requirements.txt
-└── README.md
-```
+
+# RHEL Learning Quiz App
+
+This is a Python-based quiz application for learning Red Hat Enterprise Linux (RHEL) concepts, including scenario-based RHCSA questions. The app tracks your XP, level, and total study time, and provides explanations for each answer to help you learn more effectively.
 
 ## Features
 
-- **Time Tracking**: Tracks total time spent learning and logs each session with timestamps.
-- **Gamification**: Earn XP and level up as you complete sessions.
-- **Distraction Blocking**: Automatically kills any running Steam processes during your session.
-- **Question Reinforcement**: Prompts you with a random RHEL-related question after each session.
-- **Session Logs**: Maintains detailed logs of your learning sessions and question answers.
-
----
+- Scenario-based RHCSA questions (imported from `assets/questions.txt`)
+- XP and level tracking (XP: +10 for correct, -5 for incorrect; level up every 100 XP)
+- Total study time tracking
+- Explanations shown after each answer (7th field in questions)
+- SQLite database for persistent stats, session logs, and questions
+- GUI built with Tkinter
+- Automatic migration from legacy text files to SQLite
+- All questions shown in each session, in random order
 
 ## Getting Started
 
-### Prerequisites
-
-Ensure you have the following installed on your system:
-- **Bash Shell** (Default on most Linux systems)
-- **wmctrl** (for keeping the browser on top)
-  ```bash
-  sudo apt install wmctrl
-```
-
-## Usage
-
-1. Ensure all necessary files are in place.
-2. Install the required dependencies:
-
+1. **Install dependencies:**
    ```sh
    pip install -r requirements.txt
    ```
 
-3. Run the main script:
+2. **Add your questions:**
+   - Edit `assets/questions.txt` with your questions in the format:
+     ```
+     Category|Question|Answer1|Answer2|Answer3|CorrectIndex|Explanation
+     ```
+     - `CorrectIndex` is 1-based (1, 2, or 3)
+     - `Explanation` is a short explanation shown after each answer
 
+3. **Run the app:**
    ```sh
-   python src/main.py
+   python main.py
    ```
 
-## Files
+## How It Works
 
-- `main.py`: Entry point for the application.
-- `assets.py`: Handles asset initialization and display.
-- `session.py`: Handles session logging.
-- `steam.py`: Handles killing Steam processes.
-- `timer.py`: Handles the timer and asking questions.
-- `xp.py`: Handles XP and level-up system.
+- On first run, the app migrates your XP, level, and total time from text files to SQLite (if present).
+- Questions are imported from `assets/questions.txt` into the SQLite database, including explanations.
+- All questions are shuffled and presented in a random order each session.
+- After each answer, an explanation is shown to help you learn.
+- XP and level are updated based on your answers (correct: +10 XP, incorrect: -5 XP, level up every 100 XP).
+- Your total study time and session logs are tracked in the database.
+- At the end of the session, a summary of your score by category is shown.
+
+## File Structure
+
+- `main.py` - Main application logic
+- `assets/questions.txt` - Source of all questions (with explanations)
+- `assets/questions_shuffled.txt` - Shuffled questions for each session
+- `rhel_learning.db` - SQLite database for stats, session logs, and questions
+- `requirements.txt` - Python dependencies
+
+## Question Format
+
+Each line in `assets/questions.txt` should be:
+
+```
+Category|Question|Answer1|Answer2|Answer3|CorrectIndex|Explanation
+```
+
+- `Category`: e.g., "User Management", "Networking", etc.
+- `Question`: The question text
+- `Answer1`, `Answer2`, `Answer3`: Multiple choice answers
+- `CorrectIndex`: 1-based index of the correct answer (1, 2, or 3)
+- `Explanation`: Shown after each answer for learning
+
+## Troubleshooting
+
+- Make sure your `assets/questions.txt` includes explanations as the 7th field for each question.
+- The app requires Python 3 and Tkinter.
+- If you encounter errors, check that your questions file is formatted correctly and all dependencies are installed.
+- The app will automatically migrate your old XP, level, and time files to SQLite on first run.
+
+## License
+
+MIT License

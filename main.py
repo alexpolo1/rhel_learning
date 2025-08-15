@@ -279,7 +279,7 @@ def update_xp(correct):
     if correct:
         xp, level, leveled_up = stats.add_xp(10)
     else:
-        xp, level, _ = stats.get_xp_level()
+        xp, level = stats.get_xp_level()
         xp = max(0, xp - 5)
         stats.save_stats(xp, level, stats.get_total_time())
         leveled_up = False
@@ -290,6 +290,10 @@ def update_xp(correct):
     return xp, level
 
 def show_timer(minutes, questions_file, session_log, total_time, xp, level, root):
+    # Initialize timer variables BEFORE any inner function definitions
+    seconds_left = minutes * 60
+    elapsed_time = 0
+
     def update_timer():
         nonlocal seconds_left, elapsed_time
         if seconds_left > 0:
@@ -354,27 +358,45 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level, root
     total_questions = 0
     max_score = 300
 
-    # Show all questions in random order
+
+    # Shuffle and use each question only once per session
     random.shuffle(lines)
-    questions_to_ask = lines
-    question_idx = 0
+    questions_to_ask = lines.copy()
 
     # Create a frame for question/answer widgets ONCE
     question_frame = tk.Frame(root)
     question_frame.pack(pady=10)
 
+    # Add a label to show per-category progress
+    progress_label = tk.Label(root, text="", font=("Helvetica", 10), fg="blue")
+    progress_label.pack(pady=2)
+
+    def update_progress_label():
+        # Always show progress for each category, even if empty
+        progress_items = []
+        all_cats = set(score_by_category.keys())
+        for q in lines:
+            cat = q.split('|')[0] if q.split('|')[0] else "General"
+            all_cats.add(cat)
+        for cat in sorted(all_cats):
+            correct, total = score_by_category.get(cat, [0, 0])
+            progress_items.append(f"{cat[:3].upper()}:{correct}/{total}")
+        # Break into multiple lines if too many categories
+        max_per_line = 7
+        lines_out = ["  |  ".join(progress_items[i:i+max_per_line]) for i in range(0, len(progress_items), max_per_line)]
+        progress_label.config(text="\n".join(lines_out))
+
     def ask_next_question():
-        nonlocal question_idx, total_questions, total_correct
-        if question_idx >= len(questions_to_ask):
+        nonlocal total_questions, total_correct
+        if not questions_to_ask:
             # Show score page at end
             total_score = int((total_correct / total_questions) * max_score) if total_questions else 0
             root.destroy()
             show_score_page(score_by_category, total_score)
             return
-        qline = questions_to_ask[question_idx]
+        qline = questions_to_ask.pop(0)
         parts = qline.split('|')
         if len(parts) < 5:
-            question_idx += 1
             ask_next_question()
             return
 
@@ -410,7 +432,7 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level, root
             radio_buttons.append(rb)
 
         def check_answer():
-            nonlocal question_idx, total_questions, total_correct
+            nonlocal total_questions, total_correct
             sel = answer_var.get()
             correct = any(o['text'] == sel and o['correct'] for o in opts)
             # Find the correct answer
@@ -429,19 +451,28 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level, root
                 new_xp, new_level = update_xp(True)
                 score_by_category.setdefault(category, [0, 0])[0] += 1
                 total_correct += 1
+                score_by_category.setdefault(category, [0, 0])[1] += 1
+                total_questions += 1
+                for b in radio_buttons: b.config(state=tk.DISABLED)
+                xp_label.config(text=f"XP: {new_xp}")
+                level_label.config(text=f"Level: {new_level}")
+                update_progress_label()
+                root.after(500, ask_next_question)
             else:
-                messagebox.showinfo("Incorrect", f"Sorry, that's not correct.\n{detail}")
                 new_xp, new_level = update_xp(False)
-            score_by_category.setdefault(category, [0, 0])[1] += 1
-            total_questions += 1
-            for b in radio_buttons: b.config(state=tk.DISABLED)
-            xp_label.config(text=f"XP: {new_xp}")
-            level_label.config(text=f"Level: {new_level}")
-            root.after(500, lambda: [ask_next_question()])
+                score_by_category.setdefault(category, [0, 0])[1] += 1
+                total_questions += 1
+                xp_label.config(text=f"XP: {new_xp}")
+                level_label.config(text=f"Level: {new_level}")
+                update_progress_label()
+                # Show explanation, then immediately go to next question after dialog closes
+                def after_incorrect():
+                    ask_next_question()
+                messagebox.showinfo("Incorrect", f"Sorry, that's not correct.\n{detail}")
+                root.after(10, after_incorrect)
 
         submit_btn = tk.Button(question_frame, text="Submit", command=check_answer)
         submit_btn.pack(pady=5)
-
 
     stats = UserStatsSqlite(DB_PATH, SUBSCRIPTION_END_DATE)
     timer_label = tk.Label(root, text=f"Time left: {minutes:02}:00:00", font=("Helvetica", 16))
@@ -460,16 +491,21 @@ def show_timer(minutes, questions_file, session_log, total_time, xp, level, root
     total_time_label = tk.Label(root, text=f"Total session time: {format_time(stats.get_total_time())}", font=("Helvetica", 14))
     total_time_label.pack(pady=5)
 
-    # Start the first question
+    def update_total_time_label():
+        nonlocal elapsed_time
+        # Show total time as (previous total + elapsed this session)
+        current_total = stats.get_total_time() + elapsed_time
+        total_time_label.config(text=f"Total session time: {format_time(current_total)}")
+        root.after(1000, update_total_time_label)
+
+    # Start the first question and live-updating total time
+    update_progress_label()
+    update_total_time_label()
     ask_next_question()
 
     def periodic_kill_steam():
         kill_steam()
         root.after(10000, periodic_kill_steam)
-
-    seconds_left = minutes * 60
-    elapsed_time = 0
-
 
     root.after(1000, update_timer)
     root.after(1000, update_rol_timer)
